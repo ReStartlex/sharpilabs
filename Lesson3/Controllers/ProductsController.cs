@@ -8,6 +8,9 @@ using DatabaseAPI.Models;
 using System.Security.Cryptography.X509Certificates;
 using DatabaseAPI;
 using Lesson3.Contracts.Product;
+using System.Security.Claims;
+using System.Security.Principal;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Lesson3.Controllers
 {
@@ -22,21 +25,25 @@ namespace Lesson3.Controllers
             _productRepository = productRepository;
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get([FromRoute] int id)
+        {
+            if (_productRepository.TryGet(id, out DBProduct product) == true)
+            {
+                return Ok(product);
+            }
+
+            return BadRequest($"Not found product with id = {id}");
+        }
+
         [HttpGet]
         public async Task<IActionResult> Get(
-            [FromQuery] int? id,
             [FromQuery] int? pageLength,
             [FromQuery] int? pageIndex,
             [FromQuery] int? orderType,
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice)
         {
-            if (id != null)
-            {
-                if (_productRepository.TryGet(id.Value, out DBProduct product) == true) return Ok(product);
-                else return BadRequest($"Not found product with id = {id.Value}");
-            }
-
             if (pageLength != null && pageIndex != null && orderType != null && minPrice != null && maxPrice != null)
             {
                 return Ok(await _productRepository.Get(pageLength.Value, pageIndex.Value, minPrice.Value, maxPrice.Value, (SortType)orderType.Value));
@@ -46,6 +53,7 @@ namespace Lesson3.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Add([FromBody] AddProductContract addProductContract)
         {
             DBProduct product = new DBProduct();
@@ -60,6 +68,7 @@ namespace Lesson3.Controllers
         }
 
         [HttpDelete]
+        [Authorize]
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
             if (await _productRepository.Remove(id) == false)
@@ -69,6 +78,7 @@ namespace Lesson3.Controllers
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<IActionResult> Update([FromBody] UpdateProductContract updateProductContract)
         {
             DBProduct product = new DBProduct();

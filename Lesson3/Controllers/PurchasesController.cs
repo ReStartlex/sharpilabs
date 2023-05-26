@@ -5,6 +5,10 @@ using DatabaseAPI;
 using DatabaseAPI.Repositories.Purchase;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Lesson3.Contracts.UserPurchase;
+using System.Diagnostics.SymbolStore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using DatabaseAPI.Repositories.User;
 
 namespace Lesson3.Controllers
 {
@@ -13,19 +17,34 @@ namespace Lesson3.Controllers
     public class PurchasesController : Controller
     {
         private IUserPurchaseRepository _userPurchaseRepository;
+        private IUserRepository _userRepository;
+        private IProductRepository _productRepository;
 
-        public PurchasesController(IUserPurchaseRepository userPurchaseRepository)
+        public PurchasesController(IUserPurchaseRepository userPurchaseRepository, IUserRepository userRepository, IProductRepository productRepository)
         {
             _userPurchaseRepository = userPurchaseRepository;
+            _userRepository = userRepository;
+            _productRepository = productRepository;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] AddUserPurchaseContract contract)
+        [Authorize]
+        public async Task<IActionResult> Add([FromBody] AddAuthUserPurchaseContract contract)
         {
+            string? login = HttpContext.User
+                ?.Identities
+                ?.Where(identity => identity.Claims != null)
+                ?.SelectMany(identity => identity.Claims)
+                ?.FirstOrDefault(c => c.Type == ClaimsIdentity.DefaultNameClaimType)
+                ?.Value;
+
+            DBProduct dbProduct = await _productRepository.Get(contract.ProductId);
+            DBUser dbUser = await _userRepository.Get(login.ToLower());
+
             DBUserPurchase dBUserPurchase = new DBUserPurchase();
             dBUserPurchase.ProductId = contract.ProductId;
-            dBUserPurchase.UserId = contract.UserId;
-            dBUserPurchase.Price = contract.Price;
+            dBUserPurchase.UserId = dbUser.Id;
+            dBUserPurchase.Price = dbProduct.Price;
 
             await _userPurchaseRepository.Add(dBUserPurchase);
 
@@ -33,13 +52,24 @@ namespace Lesson3.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Get()
         {
-            ICollection<DBUserPurchase> purchases = await _userPurchaseRepository.Get();
+            string? login = HttpContext.User
+                ?.Identities
+                ?.Where(identity => identity.Claims != null)
+                ?.SelectMany(identity => identity.Claims)
+                ?.FirstOrDefault(c => c.Type == ClaimsIdentity.DefaultNameClaimType)
+                ?.Value;
+
+            DBUser dbUser = await _userRepository.Get(login.ToLower());
+            ICollection<DBUserPurchase> purchases = await _userPurchaseRepository.Get(dbUser.Id);
+
             return Ok(purchases);
         }
 
         [HttpGet("UserPurchases")]
+        [Authorize]
         public async Task<IActionResult> Get([FromQuery] int userId)
         {
             ICollection<DBUserPurchase> purchases = await _userPurchaseRepository.Get(userId);

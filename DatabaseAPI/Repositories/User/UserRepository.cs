@@ -34,6 +34,12 @@ namespace DatabaseAPI.Repositories.User
             return result;
         }
 
+        public async Task<DBUser> Get(string login)
+        {
+            ICollection<DBUser> result = await dbContext.Users.ToArrayAsync();
+            return result.FirstOrDefault(result => result.Login == login);
+        }
+
         public async Task Add(DBUser user)
         {
             await dbContext.Users.AddAsync(user);
@@ -44,7 +50,7 @@ namespace DatabaseAPI.Repositories.User
         {
             DBUser userDataBase = await dbContext.Users.FindAsync(id);
 
-            if(userDataBase != null)
+            if (userDataBase != null)
             {
                 userDataBase.Name = user.Name;
                 userDataBase.Login = user.Login;

@@ -69,7 +69,7 @@ namespace DatabaseAPI.Repositories.Product
         {
             DBProduct dbProduct = await dbContext.Products.FindAsync(id);
 
-            if(dbProduct != null)
+            if (dbProduct != null)
             {
                 dbProduct.IsDeleted = true;
                 await dbContext.SaveChangesAsync();
