@@ -1,41 +1,73 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DatabaseAPI;
+using DatabaseAPI.Models;
+using DatabaseAPI.Repositories.User;
+using Lesson3.Contracts;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using labisharp.Contracts;
-using labisharp.Data;
-using labisharp.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace labisharp.Controllers
+namespace Lesson3.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : Controller
+    public class UsersController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get([FromQuery] int? id)
+        private IUserRepository userRepository;
+
+        public UsersController(IUserRepository userRepository)
         {
-            if (id == null) return Ok(UsersRepository.GetData());
+            this.userRepository = userRepository;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var users = await userRepository.Get();
+            return Ok(users);
+        }
+
+        [HttpGet("GetUsers")]
+        public async Task<IActionResult> Get([FromQuery] int length = 10, [FromQuery] int index = 0)
+        {
+            ICollection<DBUser> users = await userRepository.Get(length, index);
+            return Ok(users);
+        }
+
+        [HttpPost("UpdateUser")]
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserContract updateUserContract)
+        {
+            DBUser dBUser = new DBUser()
+            {
+                Name = updateUserContract.Name,
+                Login = updateUserContract.Login,
+                Password = updateUserContract.Password
+            };
+
+            bool result = await userRepository.Update(updateUserContract.Id, dBUser);
+
+            if(result == true)
+            {
+                return Ok();
+            }
             else
             {
-                if (UsersRepository.TryGet(id.Value, out User user) == true)
-                    return Ok(user);
-                else return BadRequest($"User ID = {id.Value} not found");
+                return BadRequest($"Пользователь с айди {updateUserContract.Id} не обнаружен");
             }
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] AddUserContract addUserContract)
+        public async Task<IActionResult> AddUser([FromBody] AddUserContract addUserContract)
         {
-            UsersRepository.Add(addUserContract.Name, addUserContract.Login, addUserContract.Password);
+            DBUser dBUser = new DBUser()
+            {
+                Name = addUserContract.Name,
+                Login = addUserContract.Login,
+                Password = addUserContract.Password
+            };
+
+            await userRepository.Add(dBUser); 
+
             return Ok();
-        }
-
-        [HttpPut]
-        public IActionResult Put([FromBody] EditUserContract editUserContract)
-        {
-            if (UsersRepository.TryEdit(editUserContract.Id, editUserContract.Name, editUserContract.Login) == true)
-                return Ok();
-            else return BadRequest($"User ID = {editUserContract.Id} not found");
-
         }
     }
 }

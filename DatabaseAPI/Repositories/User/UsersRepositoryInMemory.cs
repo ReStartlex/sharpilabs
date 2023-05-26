@@ -1,6 +1,6 @@
-﻿using TspuWebLabs.Data;
+﻿using Lesson3.Data;
 
-namespace labisharp.DatabaseAPI.Repositories.User
+namespace Lesson3.DatabaseAPI.Repositories.User
 {
     public class UsersRepositoryInMemory : IUsersRepositoryInMemory
     {

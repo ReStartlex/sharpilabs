@@ -1,4 +1,4 @@
-﻿namespace labisharp.Contracts
+﻿namespace Lesson3.Contracts
 {
     public class AddUserContract
     {
