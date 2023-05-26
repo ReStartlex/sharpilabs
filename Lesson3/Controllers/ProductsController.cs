@@ -15,11 +15,11 @@ namespace Lesson3.Controllers
     [Route("api/[controller]")]
     public class ProductsController : Controller
     {
-        private IProductRepository productRepository;
+        private IProductRepository _productRepository;
 
         public ProductsController(IProductRepository productRepository)
         {
-            this.productRepository = productRepository;
+            _productRepository = productRepository;
         }
 
         [HttpGet]
@@ -31,18 +31,18 @@ namespace Lesson3.Controllers
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice)
         {
-            if(id != null)
+            if (id != null)
             {
-                if (productRepository.TryGet(id.Value, out DBProduct product) == true) return Ok(product);
+                if (_productRepository.TryGet(id.Value, out DBProduct product) == true) return Ok(product);
                 else return BadRequest($"Not found product with id = {id.Value}");
             }
 
-            if(pageLength != null && pageIndex != null && orderType != null && minPrice != null && maxPrice != null) 
+            if (pageLength != null && pageIndex != null && orderType != null && minPrice != null && maxPrice != null)
             {
-                return Ok(await productRepository.Get(pageLength.Value, pageIndex.Value, minPrice.Value, maxPrice.Value, (SortType)orderType.Value));
+                return Ok(await _productRepository.Get(pageLength.Value, pageIndex.Value, minPrice.Value, maxPrice.Value, (SortType)orderType.Value));
             }
 
-            return Ok(await productRepository.Get());
+            return Ok(await _productRepository.Get());
         }
 
         [HttpPost]
@@ -54,7 +54,7 @@ namespace Lesson3.Controllers
             product.Price = addProductContract.Price;
             product.IsDeleted = false;
 
-            await productRepository.Add(product);
+            await _productRepository.Add(product);
 
             return Ok();
         }
@@ -62,7 +62,7 @@ namespace Lesson3.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromQuery] int id)
         {
-            if(await productRepository.Remove(id) == false)
+            if (await _productRepository.Remove(id) == false)
                 return BadRequest($"Not found product with id = {id}");
 
             return Ok();
@@ -76,7 +76,7 @@ namespace Lesson3.Controllers
             product.Description = updateProductContract.Description;
             product.Price = updateProductContract.Price;
 
-            if(await productRepository.Update(updateProductContract.Id, product) == true)
+            if (await _productRepository.Update(updateProductContract.Id, product) == true)
             {
                 product.Name = updateProductContract.Name;
                 product.Description = updateProductContract.Description;
