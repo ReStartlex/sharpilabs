@@ -1,6 +1,12 @@
-﻿namespace labisharp.Data
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DatabaseAPI.Models
 {
-    public class User
+    public class DBUser
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -1,7 +1,6 @@
-﻿using labisharp.Repositories;
-using TspuWebLabs.Data;
+﻿using TspuWebLabs.Data;
 
-namespace TspuWebLabs.Repositories
+namespace labisharp.DatabaseAPI.Repositories.User
 {
     public class UsersRepositoryInMemory : IUsersRepositoryInMemory
     {
@@ -56,6 +55,6 @@ namespace TspuWebLabs.Repositories
             }
             return false;
         }
-        
+
     }
 }
