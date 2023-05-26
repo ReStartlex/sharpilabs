@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace TspuWebLabs.Controllers
+namespace labisharp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
